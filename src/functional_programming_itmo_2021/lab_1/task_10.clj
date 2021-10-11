@@ -45,7 +45,11 @@
    )
   )
 
-(defn sum-of-primes-below-n-non-modular [n]
+(defn sum-of-primes-below-n-non-modular
+  "Finds the sum of all the primes bellow N
+   Bulk implementation
+  "
+  [n]
   (let [
         enqueue (fn [sieve candidate step]
                   (let [m (+ candidate step)]

@@ -1,5 +1,7 @@
 (ns functional-programming-itmo-2021.core.sequences)
 
+; Implementation of Sieve of Eratosthenes
+
 (defn ^:private enqueue [sieve candidate step]
    (let [m (+ candidate step)]
     (if (sieve m)

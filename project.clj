@@ -7,6 +7,7 @@
              :lab_1 {
                      :repl-options {
                                     :init-ns functional-programming-itmo-2021.lab-1.main
+                                    :package functional-programming-itmo-2021.lab-1
                                     }
                      :main functional-programming-itmo-2021.lab-1.main
                      }
