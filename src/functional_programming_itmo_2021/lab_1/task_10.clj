@@ -59,7 +59,7 @@
                   )
         next-sieve (fn [sieve candidate]
                      (if-let [step (sieve candidate)]
-                       (-> (dissoc sieve candidate)                            ; Macro magic O.o
+                       (-> (dissoc sieve candidate)
                            (enqueue candidate step))
                        (enqueue sieve candidate (* 2 candidate))
                        )
