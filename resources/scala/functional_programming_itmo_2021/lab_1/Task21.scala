@@ -6,6 +6,7 @@ import Ordering.Implicits.given
 object Task21:
   def taskThreshold[N: Integral] = Numeric[N].fromInt(10_000)
 
+  // Recursion would've been faster, but i chose more idiomatic way
   def divisorsSums[N: Integral](coll: Seq[N]): Seq[N] =
     coll.map( n =>
       Iterator.from(1, 1)
@@ -32,8 +33,8 @@ object Task21:
     val result = findingAmicableNumbers[N](taskThreshold)
     val stop = System.currentTimeMillis()
     s"""
-       |Task 10 solution:
-       | * sumOfPrimesBelowN
+       |Task 21 solution:
+       | * findingAmicableNumbers
        |Finished in: ${stop - start} ms
        |Solution: $result
        |""".stripMargin
