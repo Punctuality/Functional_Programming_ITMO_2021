@@ -398,6 +398,7 @@ object Task21:
 #### Точки вхождения и результаты программ:
 
 1. Main'ы для реализации на Clojure и Scala:
+
 `main.clj`
 ```clojure
 (ns functional-programming-itmo-2021.lab-1.main
