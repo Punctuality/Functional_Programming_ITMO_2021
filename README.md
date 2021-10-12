@@ -7,7 +7,7 @@
 | *Package* | *About* |
 |---------|-------|
 |[docs](https://github.com/Punctuality/Functional_Programming_ITMO_2021/tree/master/doc)|docs to the course|
-|[lab1](https://github.com/Punctuality/Low_Level_Programming_ITMO_2020/tree/master/src/functional_programming_itmo_2021/lab_1)|lab work #1|
+|[lab1](https://github.com/Punctuality/Functional_Programming_ITMO_2021/tree/master/doc/lab-1.md)|lab work #1|
 ---
 
 #### Author: [Sergey Fedorov](https://github.com/Punctuality)  
