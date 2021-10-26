@@ -1,5 +1,6 @@
 (ns functional-programming-itmo-2021.lab-2.hash-map
-  (:import (clojure.lang IPersistentMap Associative Util ILookup IMapEntry Seqable IPersistentCollection)))
+  (:import (clojure.lang IPersistentMap Associative Util ILookup IMapEntry Seqable IPersistentCollection IMeta MapEquivalence)
+           (java.util Map)))
 
 (defn ??? [] (throw (Exception. "Not Implemented")))
 
@@ -63,8 +64,14 @@
     arr
     ))
 
+(def compute-meta
+  (memoize (fn [contents] {:size (count (non-empty-cells contents))} )))
+
 (declare ->OpenAddressesMap)
 (deftype OpenAddressesMap [contents load]
+  IMeta
+  (meta [_] (compute-meta contents))
+
   ILookup
   (valAt [_ k not-found]
     (if-let [[attempt _] (find-entry contents k)]
@@ -86,11 +93,30 @@
                      (.assoc m k v)))
   (without [_ k] (->OpenAddressesMap (delete contents k) load))
 
+  MapEquivalence
+
   IPersistentCollection
-  (count [_] (count (non-empty-cells contents)))                 ; Replace with flag (computation expensive)
+  (count [m] (:size (.meta m)))
   (cons [m new-elem] (cons new-elem (.seq m)))
   (empty [_] (->OpenAddressesMap [] 1.0))
-  (equiv [_ o] (???))
+  (equiv [m o]
+    (if (or
+          (not (or (instance? Map o) (instance? IPersistentMap o)))
+          (and
+            (instance? IPersistentMap o)
+            (->> o (instance? MapEquivalence) not))
+          (not= (count o) (count m)))
+        false
+      (loop [elems (seq m)]
+          (let [cur-elem (first elems)]
+            (if-not (empty? elems)
+              (if (or
+                    (not (contains? o (.getKey cur-elem)))
+                    (not (= (.getValue cur-elem) (get o (.getKey cur-elem)))))
+                false
+                (recur (rest elems)))
+              true))))
+    )
 
   Associative
   (containsKey [_ k] (let [[attempt _] (find-entry contents k)]
