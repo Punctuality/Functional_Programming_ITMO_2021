@@ -16,6 +16,7 @@
                                     :init-ns functional-programming-itmo-2021.lab-2.main
                                     :package functional-programming-itmo-2021.lab-2
                                     }
-                     :main functional-programming-itmo-2021.lab-2.main}
+                     :main functional-programming-itmo-2021.lab-2.main
+                     }
              }
   )

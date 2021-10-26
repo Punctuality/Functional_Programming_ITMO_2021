@@ -1,5 +1,5 @@
 (ns functional-programming-itmo-2021.lab-2.hash-map
-  (:import (clojure.lang IPersistentMap Associative Util ILookup IMapEntry Seqable IPersistentCollection IMeta MapEquivalence)
+  (:import (clojure.lang IPersistentMap Associative Util ILookup IMapEntry Seqable IPersistentCollection IMeta MapEquivalence IPersistentVector)
            (java.util Map)))
 
 (defn ??? [] (throw (Exception. "Not Implemented")))
@@ -44,7 +44,7 @@
    (let [current-size (count arr)
          filtered (non-empty-cells arr)]
          (->> filtered
-              (insert-entries (count filtered) (vec (repeat (* coef current-size) nil)))
+              (insert-entries (count filtered) (vec (repeat (* coef (max current-size 1)) nil)))
               first
               )
          )))
@@ -97,7 +97,11 @@
 
   IPersistentCollection
   (count [m] (:size (.meta m)))
-  (cons [m new-elem] (cons new-elem (.seq m)))
+  (cons [m new] (cond
+                       (and (instance? IPersistentVector new) (>= (count new) 2)) (assoc m (first new) (nth new 2))
+                       (instance? IMapEntry new) (assoc m (key new) (val new))
+                       (instance? Seqable new) (reduce #(assoc %1 (key %2) (val %2)) m (seq new))
+                       ))
   (empty [_] (->OpenAddressesMap [] 1.0))
   (equiv [m o]
     (if (or
