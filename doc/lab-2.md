@@ -43,7 +43,7 @@ Hash-Map с открытой адресацией. Отличие от _"ста�
 Вместо выстраивания цепочек после перехода по хешу, мы продолжаем делать _хопы_ помощью "смежных" 
 хэш функций, пока не найдем свободное место.
 
-![hash map structure](https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Hash_table_5_0_1_1_1_1_0_SP.svg/2560px-Hash_table_5_0_1_1_1_1_0_SP.svg.png)
+<img alt="hash map structure" height="400" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Hash_table_5_0_1_1_1_1_0_SP.svg/2560px-Hash_table_5_0_1_1_1_1_0_SP.svg.png" width="600"/>
 
 ### Программная реализация
 
