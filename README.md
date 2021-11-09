@@ -8,6 +8,7 @@
 |---------|-------|
 |[docs](https://github.com/Punctuality/Functional_Programming_ITMO_2021/tree/master/doc)|docs to the course|
 |[lab1](https://github.com/Punctuality/Functional_Programming_ITMO_2021/tree/master/doc/lab-1.md)|lab work #1|
+|[lab2](https://github.com/Punctuality/Functional_Programming_ITMO_2021/tree/master/doc/lab-2.md)|lab work #2|
 ---
 
 #### Author: [Sergey Fedorov](https://github.com/Punctuality)  
