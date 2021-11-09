@@ -10,26 +10,26 @@
 
 (defn ^:private cubic-spline [splines]
   (fn [x] (cond
-            (< x (-> splines first first)) (apply (-> splines first last) [x])            ; x is smaller than a (extrapolation)
-            (> x (-> splines last (get 1)))  (apply (-> splines last last) [x])           ; x is bigger than b  (extrapolation)
-            :else (apply (->> splines                                                          ;  x is inside [a, b]  (interpolation)
-                       (filter #(let [[x-prev x-next _] %] (and (<= x-prev x) (<= x x-next))))
-                       first
-                       last) [x])
-            )))
+            (< x (-> splines first first)) (apply (-> splines first last) [x]) ; x is smaller than a (extrapolation)
+            (> x (-> splines last (get 1))) (apply (-> splines last last) [x]) ; x is bigger than b  (extrapolation)
+            :else (apply (->> splines                       ;  x is inside [a, b]  (interpolation)
+                              (filter #(let [[x-prev x-next _] %] (and (<= x-prev x) (<= x x-next))))
+                              first
+                              last) [x]))))
 
-(defn spline-interpolator [points]
-  ; Numerical Analysis R.L.Burden (Algorithm 3.4, p.168)
+(defn spline-interpolator
+  "Numerical Analysis R.L.Burden (Algorithm 3.4, p.168)"
+  [points]
   (if (< (count points) 3)
-    nil
+    (fn [_] "Not enough data for spline interpolation")
     (let [n (dec (count points))
           xs (mapv first points)
           ys (mapv last points)
           hs (mapv #(- (get xs (inc %)) (get xs %)) (range n))
           alphas (mapv #(-
-                        (/ (* 3.0 (- (get ys (inc %)) (get ys %))) (get hs %))
-                        (/ (* 3.0 (- (get ys %) (get ys (dec %)))) (get hs (dec %)))
-                        ) (range 1 n))
+                          (/ (* 3.0 (- (get ys (inc %)) (get ys %))) (get hs %))
+                          (/ (* 3.0 (- (get ys %) (get ys (dec %)))) (get hs (dec %)))
+                          ) (range 1 n))
 
           ; tridiagonal linear system
           ; written using transient collections to be performant
@@ -39,9 +39,9 @@
           mu! (transient (vec (repeat n 0.0)))]
       (dorun (map #(do
                      (assoc! l! % (-
-                                  (* 2.0 (- (get xs (inc %)) (get xs (dec %))))
-                                  (* (get hs (dec %)) (get mu! (dec %)))
-                                  ))
+                                    (* 2.0 (- (get xs (inc %)) (get xs (dec %))))
+                                    (* (get hs (dec %)) (get mu! (dec %)))
+                                    ))
                      (assoc! mu! % (/ (get hs %) (get l! %)))
                      (assoc! z! % (/ (-
                                        (get alphas (dec %))
@@ -70,12 +70,12 @@
         (let [bs (persistent! bs!) cs (persistent! cs!) ds (persistent! ds!)]
           (cubic-spline (->> (range (dec (count xs)))
                              (map #(vector (get xs %)
-                                     (get xs (inc %))
-                                     (cubic-func
-                                            (get xs %)
-                                            (get as %)
-                                            (get bs %)
-                                            (get cs %)
-                                            (get ds %))))
+                                           (get xs (inc %))
+                                           (cubic-func
+                                             (get xs %)
+                                             (get as %)
+                                             (get bs %)
+                                             (get cs %)
+                                             (get ds %))))
                              (sort-by first)
                              )))))))
