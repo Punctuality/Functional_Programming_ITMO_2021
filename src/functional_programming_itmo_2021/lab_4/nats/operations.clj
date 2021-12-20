@@ -134,7 +134,7 @@
   "Subscribe to a subject at NATS.
   Configuration is derived from eDSL grammar:
 
-      (subsribe
+      (subscribe
         (to nats-connection)
         (subject \"some fonny subject\"))
         (sync-sub)

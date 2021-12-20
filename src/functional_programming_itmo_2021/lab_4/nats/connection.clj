@@ -81,21 +81,3 @@
   "
   [& params]
   `(-> (Options$Builder.) ~@params .build Nats/connect))
-
-
-; EXAMPLE
-;(defn connection
-;  "Creates connection to Nats.io instance"
-;  [& addresses]
-;  (let [bootstrap-servers (u/flat-map #(str/split % #"\,") addresses)
-;        ]))
-
-; (defn create-nats
-;  "creates a Nats connection, returning a Nats object
-;   - urls : nats server urls, either a seq or comma separated"
-;  [& urls]
-;  (let [servers (flatten (map #(str/split % #",") urls))
-;        j-servers (into-array String servers)
-;        cf (ConnectionFactory. j-servers)]
-;    (.createConnection cf)))
-;
