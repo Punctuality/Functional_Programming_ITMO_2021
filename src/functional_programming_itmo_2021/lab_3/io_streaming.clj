@@ -1,6 +1,5 @@
 (ns functional-programming-itmo-2021.lab-3.io-streaming
-  (:require [clojure.core.async :as a]
-            [clojure.string :as str]))
+  (:require [clojure.core.async :as a]))
 
 (defn input-producer [inp-c]
   (a/go-loop [counter 0]
