@@ -1,6 +1,4 @@
-(defproject functional-programming-itmo-2021 "0.0.1"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+(defproject functional-programming-itmo-2021 "1.0.0"
   :dependencies [[org.clojure/clojure "1.10.3"]
                  [nrepl/lein-nrepl "0.3.2"]
                  [org.clojure/core.async "1.5.640"]

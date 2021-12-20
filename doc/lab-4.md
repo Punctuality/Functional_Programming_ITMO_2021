@@ -36,9 +36,9 @@
 
 Пишется клиент для [nats.io](nats.io), соответственно рассмотрим концепцию работы с данный системой:
 
-Системы сообщений nats, представляет собой "простую" общую шину, по которой можно передавать данные с разделением 
+Система сообщений nats, представляет собой "простую" общую шину, по которой можно передавать данные с разделением 
 по префиксным строчкам. При настроенном кластере, не имеет значение конфигурация сети, а это означает что с точки 
-зрения application-layer, нужно знать лишь соответствующий топик и адрес одного из bootstrap-серверов Nats. 
+зрения application layer, нужно знать лишь соответствующий топик и адрес одного из bootstrap-серверов Nats. 
 
 Сообщения, это закодированная информация в виде бинарного массива, объединённая вместе с соответствующей мета датой.
 
@@ -92,8 +92,7 @@
 (subscribe
     (to connection_sub)
     (subject topic)
-    sync-sub
-    )
+    sync-sub)
 ```
 
    при подписке можно также использовать 4 разных режима:
@@ -118,16 +117,13 @@
                │   ├── message.clj
                │   └── operations.clj
                └── util.clj
-
 ```
 
 #### Настройка Clojure-окружения c помощью Leiningen:
 
 `project.clj`
 ```clojure
-(defproject functional-programming-itmo-2021 "0.0.1"
-            :description "FIXME: write description"
-            :url "http://example.com/FIXME"
+(defproject functional-programming-itmo-2021 "1.0.0"
             :dependencies [[org.clojure/clojure "1.10.3"]
                            [nrepl/lein-nrepl "0.3.2"]
                            [org.clojure/core.async "1.5.640"]
@@ -178,8 +174,7 @@ services:
   (duration [this] this)
 
   Long
-  (duration [this] (Duration/ofSeconds this))
-  )
+  (duration [this] (Duration/ofSeconds this)))
 ```
 
 #### Протокол сообщений (весьма примитивный):
@@ -305,16 +300,12 @@ services:
    `(fn [aggregate# elem#]
      (if-not (nil? (~keyword aggregate#))
        (-> (str "Already defined " ~key-name) IllegalArgumentException. throw)
-       (do
-          ;(println "Agg" aggregate#)
-         (assoc aggregate# ~keyword (~opt-f elem#)))
-       ))))
+       (assoc aggregate# ~keyword (~opt-f elem#))))))
 
 (defn- check-aggregate [aggregate]
   (let [assert-not-nil #(-> aggregate %2 nil? not (assert (str %1 " is nil")))]
     (assert-not-nil "connection" :conn)
-    (assert-not-nil "subject" :subject)
-    ))
+    (assert-not-nil "subject" :subject)))
 
 
 (defrecord PublishAggregate [^Connection conn
@@ -511,7 +502,7 @@ Received a message:  Hello world!
 
 **Что есть:**
 1. Была разработана система взаимодействия с nats.io
-2. Поддерживается множество различных способ исполнения публикации или получения сообщений
+2. Поддерживается множество различных способ исполнения для публикации или получения сообщений
 3. Поддерживаются все параметры конфигурации соединения, в идиоматическом стиле
 4. Все взаимодействие с системой производится с помощью eDSL, а за ее рамками с помощью `clojure.core` или `clj-commons`
 5. eDSL был написан с совместным использованием `defn` и `defmacro`, что является идиоматичным стилем.
@@ -520,7 +511,7 @@ Received a message:  Hello world!
 
 Мысли:
 
-Были интересно, но достаточно непросто вьехать в механизм построения DSL в clojure. 
+Были интересно, но достаточно непросто въехать в механизм построения DSL в clojure. 
 Подход своеобразный и в какой-то момент, когда все сделано правильно, выглядит как очень приятная магия.
 Однако до сих пор присутствует уверенность, что использование статических языков по типу Scala или Haskell с
 авто-определением типов и type-checking'ом, позволяет и писать и использовать DSL в более приятном виде, 

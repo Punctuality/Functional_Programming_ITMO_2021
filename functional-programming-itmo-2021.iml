@@ -2,11 +2,11 @@
 <module cursive.leiningen.project.LeiningenProjectsManager.displayName="functional-programming-itmo-2021:0.0.1" cursive.leiningen.project.LeiningenProjectsManager.isLeinModule="true" type="JAVA_MODULE" version="4">
   <component name="BuildSystem">
     <option name="buildSystemId" value="LEININGEN" />
-    <option name="displayName" value="functional-programming-itmo-2021:0.0.1" />
+    <option name="displayName" value="functional-programming-itmo-2021:1.0.0" />
   </component>
   <component name="NewModuleRootManager">
     <output url="file://$MODULE_DIR$/target/classes" />
-    <output-test url="file://$MODULE_DIR$/target/test-classes" />
+    <output-test url="file://$MODULE_DIR$/target/classes" />
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/dev-resources" isTestSource="false" />
