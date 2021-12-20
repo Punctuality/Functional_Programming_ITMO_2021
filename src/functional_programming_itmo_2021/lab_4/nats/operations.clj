@@ -1,9 +1,12 @@
 (ns functional-programming-itmo-2021.lab-4.nats.operations
   (:require [functional-programming-itmo-2021.lab-4.nats.message :as m]
-            [clojure.core.async :as a])
-  (:import (io.nats.client Connection Subscription Dispatcher)
-           (clojure.lang IPersistentMap)
-           (io.nats.client.impl NatsMessage Headers)))
+            [clojure.core.async :as a]
+            [manifold.stream :as s]
+            [functional-programming-itmo-2021.lab-4.util :as u])
+  (:import (io.nats.client Connection Subscription Dispatcher MessageHandler Message)
+           (io.nats.client.impl NatsMessage Headers)
+           (clojure.lang Fn IPersistentMap)
+           (java.time Duration)))
 
 (defmacro ^:private edit-aggregate
   ([keyword key-name] `(edit-aggregate ~keyword ~key-name identity))
@@ -12,7 +15,7 @@
      (if-not (nil? (~keyword aggregate#))
        (-> (str "Already defined " ~key-name) IllegalArgumentException. throw)
        (do
-          (println "Agg" aggregate#)
+          ;(println "Agg" aggregate#)
          (assoc aggregate# ~keyword (~opt-f elem#)))
        ))))
 
@@ -23,12 +26,12 @@
     ))
 
 
-(defrecord ^:private PublishAggregate [^Connection conn
+(defrecord PublishAggregate [^Connection conn
                                        ^String subject
                                        ^ String reply-to
                                        #^bytes message
                                        ^IPersistentMap headers])
-(def ^:private empty-pub (->PublishAggregate nil nil nil nil nil))
+(def empty-pub (->PublishAggregate nil nil nil nil nil))
 
 (defn- produce-msg [^PublishAggregate aggregate]
   (let [subject (:subject aggregate)
@@ -63,6 +66,51 @@
   (let [comp-future (.request (:conn aggregate) (produce-msg aggregate))]
     (future (.get comp-future))))
 
+; Subscribe DSL
+
+(defrecord SubscribeAggregate [^Connection conn ^String subject])
+(def empty-sub (->SubscribeAggregate nil nil))
+
+(defn ^Subscription sync-sub [^SubscribeAggregate aggregate]
+  (check-aggregate aggregate)
+  (.subscribe (:conn aggregate) (:subject aggregate)))
+
+(defn async-sub
+  ([^SubscribeAggregate aggregate]
+   (check-aggregate aggregate)
+   (.createDispatcher (:conn aggregate)))
+  (^Subscription [^SubscribeAggregate aggregate ^Fn fn]
+   (.subscribe (async-sub aggregate) (proxy [MessageHandler] []
+                                       (onMessage [^Message msg] (fn msg))))))
+
+(defn stream-sub
+  ([^Dispatcher dispatcher subject]
+   (let [stream (s/stream)
+         source (s/source-only stream)
+         handler (proxy [MessageHandler] []
+                   (onMessage [msg] (s/put! stream msg)))
+         subscription (.subscribe dispatcher subject handler)]
+     (s/on-closed stream #(.close subscription))
+     source))
+  ([^Subscription subscription]
+   (lazy-seq (cons
+               (.nextMessage subscription (u/duration 10))
+               (stream-sub subscription)))))
+
+(defn stream-pub
+  "returns a Manifold sink-only stream which publishes items put on the stream
+   to NATS"
+  ([^PublishAggregate aggregate]
+   (check-aggregate aggregate)
+   (let [stream (s/stream)]
+     (s/consume (fn [msg hval]
+                  (let [adjusted-agg (-> aggregate
+                                         (message msg)
+                                         (headers hval))]
+                    (.publish (:conn aggregate) msg)))
+                stream)
+     (s/sink-only stream))))
+
 (defmacro publish
   "Publish a message to NATS.
   Configuration is derived from eDSL grammar:
@@ -77,23 +125,10 @@
         (sync-pub)
         ; or (async-pub)
         ; or (future-pub)
+        ; or (stream-pub) message and headers are defined on consumer
   "
   [& body]
   `(-> empty-pub ~@body))
-
-; Subscribe DSL
-
-(defrecord ^:private SubscribeAggregate [^Connection conn ^String subject])
-(def ^:private empty-sub (->SubscribeAggregate nil nil))
-
-(defn ^Subscription sync-sub [^SubscribeAggregate aggregate]
-  (check-aggregate aggregate)
-  (.subscribe (:conn aggregate) (:subject aggregate)))
-
-(defn ^Dispatcher async-sub [^SubscribeAggregate aggregate]
-  (check-aggregate aggregate)
-  (.createDispatcher (:conn aggregate)))
-
 
 (defmacro subscribe
   "Subscribe to a subject at NATS.
@@ -102,89 +137,11 @@
       (subsribe
         (to nats-connection)
         (subject \"some fonny subject\"))
-        (sync-pub)
-        (TODO Process sync)
-        ; or (async-pub)
-             (TODO Process async)
+        (sync-sub)
+        [(stream-sub)]
+        ; or (async-sub [callback func])
+             [(stream-sub)]
 
   "
   [& body]
   `(-> empty-sub ~@body))
-
-;(defprotocol INatsMessage
-;  (msg-body [_]))
-;
-;(defrecord NatsMessage [nats-message]
-;  INatsMessage
-;  (msg-body [_]
-;    (edn/read-string
-;     (String. (.getData nats-message)
-;              "UTF-8"))))
-;
-;(defn ^:private create-nats-subscription
-;  [nats subject {:keys [queue] :as opts} stream]
-;  (.subscribeAsync
-;   nats
-;   subject
-;   queue
-;   (reify
-;     MessageHandler
-;     (onMessage [_ m]
-;       (s/put! stream (map->NatsMessage {:nats-message m}))))))
-;
-;(defn subscribe
-;  "returns a a Manifold source-only stream of INatsMessages from a NATS subject.
-;   close the stream to dispose of the subscription"
-;  ([nats subject] (subscribe nats subject {}))
-;  ([nats subject opts]
-;   (let [stream (s/stream)
-;         source (s/source-only stream)
-;         nats-subscription (create-nats-subscription nats subject opts stream)]
-;     (s/on-closed stream
-;                  (fn []
-;                    (log/info "closing NATS subscription: " subject)
-;                    (.close nats-subscription)))
-;     source)))
-;
-;(defn publish
-;  "publish a message
-;  - subject-or-fn : either a string specifying a fixed subject or a
-;                     (fn [item] ...) which extracts a subject from an item"
-;  ([nats subject-or-fn] (publish nats subject-or-fn "" {}))
-;  ([nats subject-or-fn body] (publish nats subject-or-fn body {}))
-;  ([nats subject-or-fn body {:keys [reply] :as opts}]
-;   (let [is-subject-fn? (or (var? subject-or-fn) (fn? subject-or-fn))
-;         subject (if is-subject-fn? (subject-or-fn body) subject-or-fn)]
-;     (if subject
-;       (.publish nats subject reply (.getBytes (pr-str body) "UTF-8"))
-;       (log/warn (ex-info
-;                  (str "no subject "
-;                       (if is-subject-fn? "extracted" "given"))
-;                  {:body body}))))))
-;
-;(defn publisher
-;  "returns a Manifold sink-only stream which publishes items put on the stream
-;   to NATS"
-;  ([nats subject-or-fn]
-;   (let [stream (s/stream)]
-;     (s/consume (fn [body]
-;                  (publish nats subject-or-fn body))
-;                stream)
-;     (s/sink-only stream))))
-;
-;(defn pubsub
-;  "returns a Manifold source+sink stream for a single NATS subject.
-;   the source returns INatsMessages, while the sink accepts
-;   strings"
-;  ([nats subject] (pubsub nats subject {}))
-;  ([nats subject opts]
-;   (let [pub-stream (s/stream)
-;         sub-stream (s/stream)
-;
-;         nats-subscription (create-nats-subscription nats subject opts sub-stream)]
-;
-;     (s/consume (fn [body] (publish nats subject body)) pub-stream)
-;
-;     (s/on-closed sub-stream (fn [] (.close nats-subscription)))
-;
-;     (s/splice pub-stream sub-stream))))

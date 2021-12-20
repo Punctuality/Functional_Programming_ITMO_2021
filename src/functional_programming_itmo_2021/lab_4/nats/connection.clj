@@ -23,13 +23,13 @@
     [:data-port-type port-type] (.dataPortType builder port-type)
 
     [:connection-name name]     (.connectionName builder name)
-    [:connection-listener func] (.connectionListener builder (proxy [ConnectionListener] []
-                                                                   (connectionEvent [conn type] (func conn type))))
+    [:connection-listener func] (.connectionListener builder (reify ConnectionListener
+                                                                   (connectionEvent [_ conn type] (func conn type))))
     [:connection-timeout dur]   (.connectionTimeout builder (u/duration dur))
 
     [:reconnect-buffer-size size]   (.reconnectBufferSize builder size)
-    [:reconnect-delay-handler func] (.reconnectDelayHandler builder (proxy [ReconnectDelayHandler] []
-                                                                      (getWaitTime [totalTries] (func totalTries))))
+    [:reconnect-delay-handler func] (.reconnectDelayHandler builder (reify ReconnectDelayHandler
+                                                                      (getWaitTime [_ totalTries] (func totalTries))))
     [:reconnect-jitter dur]         (.reconnectJitter builder (u/duration dur))
     [:reconnect-jitter-tls dur]     (.reconnectJitterTls builder (u/duration dur))
     [:reconnect-wait dur]           (.reconnectWait builder (u/duration dur))

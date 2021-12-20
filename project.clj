@@ -5,7 +5,8 @@
                  [nrepl/lein-nrepl "0.3.2"]
                  [org.clojure/core.async "1.5.640"]
                  [io.nats/jnats "2.13.1"]
-                 [org.clojure/core.match "1.0.0"]]
+                 [org.clojure/core.match "1.0.0"]
+                 [manifold "0.2.3"]]
   :profiles {
              :lab_1 {
                      :repl-options {

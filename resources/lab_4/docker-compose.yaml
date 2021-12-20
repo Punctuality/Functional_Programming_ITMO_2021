@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  local_nats:
+    image: nats:latest
+#    network_mode: nats
+    ports:
+      - 4222:4222
+      - 8222:8222
